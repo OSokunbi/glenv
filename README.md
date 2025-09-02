@@ -83,7 +83,6 @@ access env variables using the `get`, `get_int`, and `get_bool` functions:
 
 ```gleam
 import glenv
-import gleam/option.{Some, None}
 
 pub fn main() {
   case env.init() {
