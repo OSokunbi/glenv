@@ -612,18 +612,18 @@ pub fn clean_value_mismatched_quotes_test() {
 
   cleanup_test_file("test_mismatch.env")
 }
+
 pub fn init_test() {
-  
   let content = "TEST_INIT_VAR=init_value"
   create_test_env_file(".env", content)
-  
+
   case glenv.init() {
     Ok(Nil) -> {
       should.be_true(True)
     }
     Error(_) -> should.fail()
   }
-  
+
   cleanup_test_file(".env")
 }
 
