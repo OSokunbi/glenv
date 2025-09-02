@@ -63,7 +63,7 @@ import gleamv
 pub fn main() {
   case gleamv.init() {
     Ok(_) -> {
-      // Glenv is initialized successfully
+      // gleamv is initialized successfully
     }
     Error(err) -> {
       // Handle initialization error
