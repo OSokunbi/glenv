@@ -1,0 +1,24 @@
+# glenv
+
+[![Package Version](https://img.shields.io/hexpm/v/glenv)](https://hex.pm/packages/glenv)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glenv/)
+
+```sh
+gleam add glenv@1
+```
+```gleam
+import glenv
+
+pub fn main() -> Nil {
+  // TODO: An example of the project in use
+}
+```
+
+Further documentation can be found at <https://hexdocs.pm/glenv>.
+
+## Development
+
+```sh
+gleam run   # Run the project
+gleam test  # Run the tests
+```
