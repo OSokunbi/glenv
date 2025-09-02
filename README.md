@@ -1,25 +1,20 @@
-# glenv
-
-[![Package Version](https://img.shields.io/hexpm/v/glenv)](https://hex.pm/packages/glenv)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glenv/)
-
-# glenv
+# gleamv
 
 gleam wrapper for managing environment variables. load variables from `.env` files and access them in your Gleam applications.
 
 ```sh
-gleam add glenv@1
+gleam add gleamv@1
 ```
 ```gleam
-import glenv
+import gleamv
 
 pub fn main() -> Nil {
-  case glenv.init() {
+  case gleamv.init() {
     Ok(_) -> Nil
     Error(e) -> io.println("Error loading .env file: " <> string.inspect(e))
   }
   
-  let assert Ok(db_url) = glenv.require("DATABASE_URL")
+  let assert Ok(db_url) = gleamv.require("DATABASE_URL")
   io.println("Database URL: " <> db_url)
 }
 ```
@@ -39,11 +34,11 @@ this package relies on the following dependencies:
 
 ## Installation
 
-Add `glenv` to your Gleam project's dependencies in `gleam.toml`:
+Add `gleamv` to your Gleam project's dependencies in `gleam.toml`:
 
 ```toml
 [dependencies]
-glenv = "x.x.x"
+gleamv = "x.x.x"
 ```
 
 ## usage
@@ -58,15 +53,15 @@ PORT="8080"
 DEBUG="true"
 ```
 
-### 2. initialize glenv
+### 2. initialize gleamv
 
-initialize glenv in your application's entry point (e.g., `main` function):
+initialize gleamv in your application's entry point (e.g., `main` function):
 
 ```gleam
-import glenv
+import gleamv
 
 pub fn main() {
-  case glenv.init() {
+  case gleamv.init() {
     Ok(_) -> {
       // Glenv is initialized successfully
     }
@@ -82,7 +77,7 @@ pub fn main() {
 access env variables using the `get`, `get_int`, and `get_bool` functions:
 
 ```gleam
-import glenv
+import gleamv
 
 pub fn main() {
   case env.init() {
@@ -90,13 +85,13 @@ pub fn main() {
     Error(e) -> io.println("Error loading .env file: " <> string.inspect(e))
   }
   
-  let db_url = glenv.get("DATABASE_URL")
+  let db_url = gleamv.get("DATABASE_URL")
   // Some("your-database-url")
 
-  let port = glenv.get_int("PORT")
+  let port = gleamv.get_int("PORT")
   // Ok(8080)
 
-  let debug = glenv.get_bool("DEBUG")
+  let debug = gleamv.get_bool("DEBUG")
   // Ok(True)
 }
 ```
@@ -106,16 +101,16 @@ pub fn main() {
 Use the `get_or`, `get_int_or`, and `get_bool_or` functions to provide default values:
 
 ```gleam
-import glenv
+import gleamv
 
 pub fn main() {
-  let host = glenv.get_or("HOST", "localhost")
+  let host = gleamv.get_or("HOST", "localhost")
   // "localhost"
 
-  let port = glenv.get_int_or("PORT", 8080)
+  let port = gleamv.get_int_or("PORT", 8080)
   // 8080
 
-  let debug = glenv.get_bool_or("DEBUG", False)
+  let debug = gleamv.get_bool_or("DEBUG", False)
   // False
 }
 ```
@@ -125,10 +120,10 @@ pub fn main() {
 use the `require` function to ensure that a required environment variable is set:
 
 ```gleam
-import glenv
+import gleamv
 
 pub fn main() {
-  case glenv.require("API_KEY") {
+  case gleamv.require("API_KEY") {
     Ok(api_key) -> {
       // Use the api_key
     }
@@ -141,21 +136,21 @@ pub fn main() {
 
 ## config
 
-you can customize glenv's behavior by providing a `Config` to the `init_with_config` function:
+you can customize gleamv's behavior by providing a `Config` to the `init_with_config` function:
 
 ```gleam
-import glenv
+import gleamv
 
 pub fn main() {
-  let config = glenv.Config(
+  let config = gleamv.Config(
     path: ".env.local",
     override: True,
     ignore_missing: False,
   )
 
-  case glenv.init_with_config(config) {
+  case gleamv.init_with_config(config) {
     Ok(_) -> {
-      // glenv is initialized with custom config
+      // gleamv is initialized with custom config
     }
     Error(err) -> {
       // handle initialization error
