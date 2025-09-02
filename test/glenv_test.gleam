@@ -5,7 +5,7 @@ import gleam/option.{None, Some}
 import gleam/string
 import gleeunit
 import gleeunit/should
-import glenv
+import gleamv
 import simplifile
 
 pub fn main() {
@@ -24,7 +24,7 @@ fn cleanup_test_file(path: String) -> Nil {
 
 pub fn parse_empty_line_test() {
   let _ =
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_empty.env",
       override: False,
       ignore_missing: False,
@@ -33,7 +33,7 @@ pub fn parse_empty_line_test() {
   create_test_env_file("test_empty.env", "")
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_empty.env",
       override: False,
       ignore_missing: False,
@@ -54,7 +54,7 @@ pub fn parse_comment_lines_test() {
   create_test_env_file("test_comments.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_comments.env",
       override: False,
       ignore_missing: False,
@@ -64,7 +64,7 @@ pub fn parse_comment_lines_test() {
       dict.size(env_vars)
       |> should.equal(1)
 
-      glenv.dict_get(env_vars, "KEY")
+      gleamv.dict_get(env_vars, "KEY")
       |> should.equal(Some("value"))
     }
     Error(_) -> should.fail()
@@ -78,7 +78,7 @@ pub fn parse_basic_key_value_test() {
   create_test_env_file("test_basic.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_basic.env",
       override: False,
       ignore_missing: False,
@@ -88,10 +88,10 @@ pub fn parse_basic_key_value_test() {
       dict.size(env_vars)
       |> should.equal(2)
 
-      glenv.dict_get(env_vars, "KEY1")
+      gleamv.dict_get(env_vars, "KEY1")
       |> should.equal(Some("value1"))
 
-      glenv.dict_get(env_vars, "KEY2")
+      gleamv.dict_get(env_vars, "KEY2")
       |> should.equal(Some("value2"))
     }
     Error(_) -> should.fail()
@@ -105,20 +105,20 @@ pub fn parse_quoted_values_test() {
   create_test_env_file("test_quotes.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_quotes.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "KEY1")
+      gleamv.dict_get(env_vars, "KEY1")
       |> should.equal(Some("quoted value"))
 
-      glenv.dict_get(env_vars, "KEY2")
+      gleamv.dict_get(env_vars, "KEY2")
       |> should.equal(Some("single quoted"))
 
-      glenv.dict_get(env_vars, "KEY3")
+      gleamv.dict_get(env_vars, "KEY3")
       |> should.equal(Some("unquoted"))
     }
     Error(_) -> should.fail()
@@ -132,17 +132,17 @@ pub fn parse_whitespace_handling_test() {
   create_test_env_file("test_whitespace.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_whitespace.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "KEY1")
+      gleamv.dict_get(env_vars, "KEY1")
       |> should.equal(Some("value1"))
 
-      glenv.dict_get(env_vars, "KEY2")
+      gleamv.dict_get(env_vars, "KEY2")
       |> should.equal(Some("value2"))
     }
     Error(_) -> should.fail()
@@ -156,14 +156,14 @@ pub fn parse_error_empty_key_test() {
   create_test_env_file("test_empty_key.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_empty_key.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(_) -> should.fail()
-    Error(glenv.ParseError(msg, line)) -> {
+    Error(gleamv.ParseError(msg, line)) -> {
       string.contains(msg, "Empty variable name")
       |> should.be_true()
       line |> should.equal(1)
@@ -179,14 +179,14 @@ pub fn parse_error_missing_equals_test() {
   create_test_env_file("test_no_equals.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_no_equals.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(_) -> should.fail()
-    Error(glenv.ParseError(msg, line)) -> {
+    Error(gleamv.ParseError(msg, line)) -> {
       string.contains(msg, "missing '='")
       |> should.be_true()
       line |> should.equal(1)
@@ -201,9 +201,9 @@ pub fn load_default_test() {
   let content = "TEST_KEY=test_value"
   create_test_env_file(".env", content)
 
-  case glenv.load() {
+  case gleamv.load() {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "TEST_KEY")
+      gleamv.dict_get(env_vars, "TEST_KEY")
       |> should.equal(Some("test_value"))
     }
     Error(_) -> should.fail()
@@ -214,7 +214,7 @@ pub fn load_default_test() {
 
 pub fn load_missing_file_ignore_test() {
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "nonexistent.env",
       override: False,
       ignore_missing: True,
@@ -230,14 +230,14 @@ pub fn load_missing_file_ignore_test() {
 
 pub fn load_missing_file_error_test() {
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "nonexistent.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(_) -> should.fail()
-    Error(glenv.FileNotFound(path)) -> {
+    Error(gleamv.FileNotFound(path)) -> {
       path |> should.equal("nonexistent.env")
     }
     Error(_) -> should.fail()
@@ -245,7 +245,7 @@ pub fn load_missing_file_error_test() {
 }
 
 pub fn config_default_test() {
-  let config = glenv.default_config()
+  let config = gleamv.default_config()
   config.path |> should.equal(".env")
   config.override |> should.equal(False)
   config.ignore_missing |> should.equal(True)
@@ -257,10 +257,10 @@ pub fn dict_get_test() {
     |> dict.insert("KEY1", "value1")
     |> dict.insert("KEY2", "value2")
 
-  glenv.dict_get(env_vars, "KEY1")
+  gleamv.dict_get(env_vars, "KEY1")
   |> should.equal(Some("value1"))
 
-  glenv.dict_get(env_vars, "NONEXISTENT")
+  gleamv.dict_get(env_vars, "NONEXISTENT")
   |> should.equal(None)
 }
 
@@ -269,22 +269,22 @@ pub fn dict_get_or_test() {
     dict.new()
     |> dict.insert("KEY1", "value1")
 
-  glenv.dict_get_or(env_vars, "KEY1", "default")
+  gleamv.dict_get_or(env_vars, "KEY1", "default")
   |> should.equal("value1")
 
-  glenv.dict_get_or(env_vars, "NONEXISTENT", "default")
+  gleamv.dict_get_or(env_vars, "NONEXISTENT", "default")
   |> should.equal("default")
 }
 
 pub fn get_system_env_test() {
-  case glenv.get("PATH") {
+  case gleamv.get("PATH") {
     Some(_) -> should.be_true(True)
     None -> should.fail()
   }
 }
 
 pub fn get_or_test() {
-  glenv.get_or("VERY_UNLIKELY_ENV_VAR_NAME_12345", "default_value")
+  gleamv.get_or("VERY_UNLIKELY_ENV_VAR_NAME_12345", "default_value")
   |> should.equal("default_value")
 }
 
@@ -293,14 +293,14 @@ pub fn get_int_valid_test() {
   create_test_env_file("test_int.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_int.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      case glenv.dict_get(env_vars, "NUMBER") {
+      case gleamv.dict_get(env_vars, "NUMBER") {
         Some(value) -> {
           case int.parse(value) {
             Ok(num) -> num |> should.equal(42)
@@ -317,7 +317,7 @@ pub fn get_int_valid_test() {
 }
 
 pub fn get_int_or_test() {
-  glenv.get_int_or("NONEXISTENT_INT_VAR", 100)
+  gleamv.get_int_or("NONEXISTENT_INT_VAR", 100)
   |> should.equal(100)
 }
 
@@ -338,14 +338,14 @@ pub fn get_bool_true_values_test() {
     create_test_env_file("test_bool.env", content)
 
     case
-      glenv.load_with_config(glenv.Config(
+      gleamv.load_with_config(gleamv.Config(
         path: "test_bool.env",
         override: False,
         ignore_missing: False,
       ))
     {
       Ok(env_vars) -> {
-        case glenv.dict_get(env_vars, "BOOL_VAR") {
+        case gleamv.dict_get(env_vars, "BOOL_VAR") {
           Some(val) -> {
             let lower = string.lowercase(val)
             case lower {
@@ -381,14 +381,14 @@ pub fn get_bool_false_values_test() {
     create_test_env_file("test_bool.env", content)
 
     case
-      glenv.load_with_config(glenv.Config(
+      gleamv.load_with_config(gleamv.Config(
         path: "test_bool.env",
         override: False,
         ignore_missing: False,
       ))
     {
       Ok(env_vars) -> {
-        case glenv.dict_get(env_vars, "BOOL_VAR") {
+        case gleamv.dict_get(env_vars, "BOOL_VAR") {
           Some(val) -> {
             let lower = string.lowercase(val)
             case lower {
@@ -408,30 +408,30 @@ pub fn get_bool_false_values_test() {
 }
 
 pub fn get_bool_or_test() {
-  glenv.get_bool_or("NONEXISTENT_BOOL_VAR", True)
+  gleamv.get_bool_or("NONEXISTENT_BOOL_VAR", True)
   |> should.equal(True)
 
-  glenv.get_bool_or("NONEXISTENT_BOOL_VAR", False)
+  gleamv.get_bool_or("NONEXISTENT_BOOL_VAR", False)
   |> should.equal(False)
 }
 
 pub fn has_test() {
-  glenv.has("PATH")
+  gleamv.has("PATH")
   |> should.be_true()
 
-  glenv.has("VERY_UNLIKELY_ENV_VAR_NAME_12345")
+  gleamv.has("VERY_UNLIKELY_ENV_VAR_NAME_12345")
   |> should.be_false()
 }
 
 pub fn require_existing_test() {
-  case glenv.require("PATH") {
+  case gleamv.require("PATH") {
     Ok(_) -> should.be_true(True)
     Error(_) -> should.fail()
   }
 }
 
 pub fn require_missing_test() {
-  case glenv.require("NONEXISTENT_REQUIRED_VAR") {
+  case gleamv.require("NONEXISTENT_REQUIRED_VAR") {
     Ok(_) -> should.fail()
     Error(msg) -> {
       string.contains(msg, "Required environment variable not set")
@@ -471,35 +471,35 @@ SINGLE_QUOTED='single value'
   create_test_env_file("test_complex.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_complex.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "DB_HOST")
+      gleamv.dict_get(env_vars, "DB_HOST")
       |> should.equal(Some("localhost"))
 
-      glenv.dict_get(env_vars, "DB_PORT")
+      gleamv.dict_get(env_vars, "DB_PORT")
       |> should.equal(Some("5432"))
 
-      glenv.dict_get(env_vars, "API_KEY")
+      gleamv.dict_get(env_vars, "API_KEY")
       |> should.equal(Some("secret-key-with-special-chars!@#"))
 
-      glenv.dict_get(env_vars, "ENABLE_FEATURE_X")
+      gleamv.dict_get(env_vars, "ENABLE_FEATURE_X")
       |> should.equal(Some("true"))
 
-      glenv.dict_get(env_vars, "ENABLE_FEATURE_Y")
+      gleamv.dict_get(env_vars, "ENABLE_FEATURE_Y")
       |> should.equal(Some("false"))
 
-      glenv.dict_get(env_vars, "EMPTY_VALUE")
+      gleamv.dict_get(env_vars, "EMPTY_VALUE")
       |> should.equal(Some(""))
 
-      glenv.dict_get(env_vars, "QUOTED_EMPTY")
+      gleamv.dict_get(env_vars, "QUOTED_EMPTY")
       |> should.equal(Some(""))
 
-      glenv.dict_get(env_vars, "SINGLE_QUOTED")
+      gleamv.dict_get(env_vars, "SINGLE_QUOTED")
       |> should.equal(Some("single value"))
     }
     Error(_) -> should.fail()
@@ -513,14 +513,14 @@ pub fn parse_error_line_numbers_test() {
   create_test_env_file("test_error_line.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_error_line.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(_) -> should.fail()
-    Error(glenv.ParseError(_, line_number)) -> {
+    Error(gleamv.ParseError(_, line_number)) -> {
       line_number |> should.equal(2)
     }
     Error(_) -> should.fail()
@@ -534,14 +534,14 @@ pub fn clean_value_double_quotes_test() {
   create_test_env_file("test_clean.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_clean.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "KEY")
+      gleamv.dict_get(env_vars, "KEY")
       |> should.equal(Some("value with spaces"))
     }
     Error(_) -> should.fail()
@@ -555,14 +555,14 @@ pub fn clean_value_single_quotes_test() {
   create_test_env_file("test_clean_single.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_clean_single.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "KEY")
+      gleamv.dict_get(env_vars, "KEY")
       |> should.equal(Some("value with spaces"))
     }
     Error(_) -> should.fail()
@@ -576,14 +576,14 @@ pub fn clean_value_no_quotes_test() {
   create_test_env_file("test_no_quotes.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_no_quotes.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "KEY")
+      gleamv.dict_get(env_vars, "KEY")
       |> should.equal(Some("value_no_quotes"))
     }
     Error(_) -> should.fail()
@@ -597,14 +597,14 @@ pub fn clean_value_mismatched_quotes_test() {
   create_test_env_file("test_mismatch.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_mismatch.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "KEY")
+      gleamv.dict_get(env_vars, "KEY")
       |> should.equal(Some("\"value'"))
     }
     Error(_) -> should.fail()
@@ -617,7 +617,7 @@ pub fn init_test() {
   let content = "TEST_INIT_VAR=init_value"
   create_test_env_file(".env", content)
 
-  case glenv.init() {
+  case gleamv.init() {
     Ok(Nil) -> {
       should.be_true(True)
     }
@@ -639,23 +639,23 @@ JSON_LIKE='{\"key\":\"value\",\"number\":123}'
   create_test_env_file("test_special.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_special.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "SPECIAL_CHARS")
+      gleamv.dict_get(env_vars, "SPECIAL_CHARS")
       |> should.equal(Some("value with !@#$%^&*()"))
 
-      glenv.dict_get(env_vars, "URL")
+      gleamv.dict_get(env_vars, "URL")
       |> should.equal(Some("https://example.com/path?param=value&other=123"))
 
-      glenv.dict_get(env_vars, "PATH_VALUE")
+      gleamv.dict_get(env_vars, "PATH_VALUE")
       |> should.equal(Some("/home/user/my folder/file.txt"))
 
-      glenv.dict_get(env_vars, "JSON_LIKE")
+      gleamv.dict_get(env_vars, "JSON_LIKE")
       |> should.equal(Some("{\"key\":\"value\",\"number\":123}"))
     }
     Error(_) -> should.fail()
@@ -680,14 +680,14 @@ FINAL_KEY=final_value"
   create_test_env_file("test_mixed.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_mixed.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(_) -> should.fail()
-    Error(glenv.ParseError(_, line_number)) -> {
+    Error(gleamv.ParseError(_, line_number)) -> {
       line_number |> should.equal(8)
     }
     Error(_) -> should.fail()
@@ -701,14 +701,14 @@ pub fn empty_value_test() {
   create_test_env_file("test_empty_val.env", content)
 
   case
-    glenv.load_with_config(glenv.Config(
+    gleamv.load_with_config(gleamv.Config(
       path: "test_empty_val.env",
       override: False,
       ignore_missing: False,
     ))
   {
     Ok(env_vars) -> {
-      glenv.dict_get(env_vars, "EMPTY_KEY")
+      gleamv.dict_get(env_vars, "EMPTY_KEY")
       |> should.equal(Some(""))
     }
     Error(_) -> should.fail()
