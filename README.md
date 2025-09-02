@@ -14,6 +14,13 @@ gleam add glenv@1
 import glenv
 
 pub fn main() -> Nil {
+  case glenv.init() {
+    Ok(_) -> Nil
+    Error(e) -> io.println("Error loading .env file: " <> string.inspect(e))
+  }
+  
+  let assert Ok(db_url) = glenv.require("DATABASE_URL")
+  io.println("Database URL: " <> db_url)
 }
 ```
 
