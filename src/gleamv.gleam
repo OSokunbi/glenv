@@ -1,4 +1,5 @@
 import gleam/dict.{type Dict}
+import gleam/float
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
@@ -21,6 +22,18 @@ pub type DotenvError {
   FileNotFound(String)
   ParseError(String, Int)
   IOError(String)
+  TypeError(String)
+  KeyError(String)
+}
+
+pub fn err_str(err: DotenvError) -> String {
+  case err {
+    FileNotFound(path) -> "File not found: " <> path
+    ParseError(msg, line) -> "Parse error on line " <> int.to_string(line) <> ": " <> msg
+    IOError(msg) -> "IO error: " <> msg
+    TypeError(msg) -> "Type error: " <> msg
+    KeyError(msg) -> "Key error: " <> msg
+  }
 }
 
 fn parse_line(
@@ -154,10 +167,79 @@ pub fn get_or(key: String, default: String) -> String {
   }
 }
 
-pub fn get_int(key: String) -> Result(Int, Nil) {
+fn parse_list(key: String, raw: String) -> Result(List(String), DotenvError) {
+  let value = clean_value(string.trim(raw))
+
+  case string.contains(value, ",") {
+    False ->
+      Error(TypeError(
+        "Expected a comma-separated list for key: " <> key <> ", got: " <> value,
+      ))
+
+    True -> {
+      let items =
+        value
+        |> string.split(",")
+        |> list.map(string.trim)
+
+      case items {
+        [] -> Error(TypeError("Empty list for key: " <> key))
+        _ -> {
+          case list.any(items, fn(x) { x == "" }) {
+            True ->
+              Error(TypeError(
+                "Invalid list for " <> key <> ": contains empty item(s)",
+              ))
+            False -> Ok(items)
+          }
+        }
+      }
+    }
+  }
+}
+
+pub fn get_list(key: String) -> Result(List(String), DotenvError) {
   case get(key) {
-    Some(value) -> int.parse(value)
-    None -> Error(Nil)
+    Some(value) -> parse_list(key, value)
+    None -> Error(KeyError("Key not found"))
+  }
+}
+
+pub fn get_list_or(key: String, default: List(String)) -> List(String) {
+  case get_list(key) {
+    Ok(value) -> value
+    Error(_) -> default
+  }
+}
+
+pub fn get_float(key: String) -> Result(Float, DotenvError) {
+  case get(key) {
+    Some(value) -> {
+      case float.parse(value) {
+        Ok(f) -> Ok(f)
+        Error(_) -> Error(TypeError("Invalid float for key: " <> key))
+      }
+    }
+    None -> Error(KeyError("Key not found"))
+  }
+}
+
+pub fn get_float_or(key: String, default: Float) -> Float {
+  case get_float(key) {
+    Ok(value) -> value
+    Error(_) -> default
+  }
+}
+
+pub fn get_int(key: String) -> Result(Int, DotenvError) {
+  case get(key) {
+    Some(value) -> {
+      case int.parse(value) {
+        Ok(i) -> Ok(i)
+        Error(_) -> Error(TypeError("Invalid integer for key: " <> key))
+      }
+    }
+    None -> Error(KeyError("Key not found"))
   }
 }
 
@@ -168,17 +250,17 @@ pub fn get_int_or(key: String, default: Int) -> Int {
   }
 }
 
-pub fn get_bool(key: String) -> Result(Bool, Nil) {
+pub fn get_bool(key: String) -> Result(Bool, DotenvError) {
   case get(key) {
     Some(value) -> {
       let lower = string.lowercase(value)
       case lower {
         "true" | "1" | "yes" | "on" -> Ok(True)
         "false" | "0" | "no" | "off" -> Ok(False)
-        _ -> Error(Nil)
+        _ -> Error(TypeError("Invalid boolean value for key: " <> key))
       }
     }
-    None -> Error(Nil)
+    None -> Error(KeyError("Key not found"))
   }
 }
 
@@ -204,24 +286,116 @@ pub fn require(key: String) -> Result(String, String) {
     None -> Error("Required environment variable not set: " <> key)
   }
 }
-
-/// used to get a specific variable from a loaded env_vars dict (for manual loading)
-pub fn dict_get(env_vars: Dict(String, String), key: String) -> Option(String) {
+pub fn dict_get(
+  env_vars: Dict(String, String),
+  key: String,
+) -> Result(String, DotenvError) {
   case dict.get(env_vars, key) {
-    Ok(value) -> Some(value)
-    Error(_) -> None
+    Ok(value) -> Ok(value)
+    Error(_) -> Error(KeyError("Key not found"))
   }
 }
 
-/// get a variable with default from a dict
+// List
+pub fn dict_get_list(
+  env_vars: Dict(String, String),
+  key: String,
+) -> Result(List(String), DotenvError) {
+  use value <- result.try(dict_get(env_vars, key))
+  parse_list(key, value)
+}
+
+pub fn dict_get_list_or(
+  env_vars: Dict(String, String),
+  key: String,
+  default: List(String),
+) -> List(String) {
+  case dict_get_list(env_vars, key) {
+    Ok(value) -> value
+    Error(_) -> default
+  }
+}
+
+// Float
+pub fn dict_get_float(
+  env_vars: Dict(String, String),
+  key: String,
+) -> Result(Float, DotenvError) {
+  use value <- result.try(dict_get(env_vars, key))
+  case float.parse(value) {
+    Ok(f) -> Ok(f)
+    Error(_) -> Error(TypeError("Invalid float for key: " <> key))
+  }
+}
+
+pub fn dict_get_float_or(
+  env_vars: Dict(String, String),
+  key: String,
+  default: Float,
+) -> Float {
+  case dict_get_float(env_vars, key) {
+    Ok(value) -> value
+    Error(_) -> default
+  }
+}
+
+// Int
+pub fn dict_get_int(
+  env_vars: Dict(String, String),
+  key: String,
+) -> Result(Int, DotenvError) {
+  use value <- result.try(dict_get(env_vars, key))
+  case int.parse(value) {
+    Ok(i) -> Ok(i)
+    Error(_) -> Error(TypeError("Invalid integer for key: " <> key))
+  }
+}
+
+pub fn dict_get_int_or(
+  env_vars: Dict(String, String),
+  key: String,
+  default: Int,
+) -> Int {
+  case dict_get_int(env_vars, key) {
+    Ok(value) -> value
+    Error(_) -> default
+  }
+}
+
+// Bool
+pub fn dict_get_bool(
+  env_vars: Dict(String, String),
+  key: String,
+) -> Result(Bool, DotenvError) {
+  use value <- result.try(dict_get(env_vars, key))
+  let lower = string.lowercase(value)
+  case lower {
+    "true" | "1" | "yes" | "on" -> Ok(True)
+    "false" | "0" | "no" | "off" -> Ok(False)
+    _ -> Error(TypeError("Invalid boolean value for key: " <> key))
+  }
+}
+
+pub fn dict_get_bool_or(
+  env_vars: Dict(String, String),
+  key: String,
+  default: Bool,
+) -> Bool {
+  case dict_get_bool(env_vars, key) {
+    Ok(value) -> value
+    Error(_) -> default
+  }
+}
+
+// String with default
 pub fn dict_get_or(
   env_vars: Dict(String, String),
   key: String,
   default: String,
 ) -> String {
   case dict_get(env_vars, key) {
-    Some(value) -> value
-    None -> default
+    Ok(value) -> value
+    Error(_) -> default
   }
 }
 
