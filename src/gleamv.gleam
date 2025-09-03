@@ -29,7 +29,8 @@ pub type DotenvError {
 pub fn err_str(err: DotenvError) -> String {
   case err {
     FileNotFound(path) -> "File not found: " <> path
-    ParseError(msg, line) -> "Parse error on line " <> int.to_string(line) <> ": " <> msg
+    ParseError(msg, line) ->
+      "Parse error on line " <> int.to_string(line) <> ": " <> msg
     IOError(msg) -> "IO error: " <> msg
     TypeError(msg) -> "Type error: " <> msg
     KeyError(msg) -> "Key error: " <> msg
@@ -286,6 +287,7 @@ pub fn require(key: String) -> Result(String, String) {
     None -> Error("Required environment variable not set: " <> key)
   }
 }
+
 pub fn dict_get(
   env_vars: Dict(String, String),
   key: String,
